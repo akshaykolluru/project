@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>AI Product Finder</title>
+<style>
+body {
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #0f172a;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.container {
+background: #1e293b;
+padding: 30px;
+border-radius: 20px;
+text-align: center;
+width: 350px;
+box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+}
+
+input {
+margin: 15px 0;
+}
+
+button {
+background: #3b82f6;
+border: none;
+padding: 10px 20px;
+border-radius: 10px;
+color: white;
+cursor: pointer;
+}
+
+button:hover {
+background: #2563eb;
+}
+
+img {
+margin-top: 15px;
+border-radius: 10px;
+}
+
+.links a {
+display: block;
+margin-top: 10px;
+color: #60a5fa;
+text-decoration: none;
+}
+
+.loading {
+margin-top: 10px;
+font-size: 14px;
+color: #94a3b8;
+} </style>
+
+</head>
+
+<body>
+<div class="container">
+  <h2>🔍 AI Product Finder</h2>
+
+  <input type="file" id="fileInput" accept="image/*">
+
+  <br>
+  <button onclick="upload()">Find Product</button>
+
+  <div class="loading" id="loading"></div>
+
+  <h3 id="result"></h3>
+  <img id="preview" width="200"/>
+
+  <div class="links">
+    <a id="amazon" target="_blank"></a>
+    <a id="flipkart" target="_blank"></a>
+  </div>
+</div>
+
+<script>
+function previewImage(file) {
+  const reader = new FileReader();
+  reader.onload = () => {
+    document.getElementById("preview").src = reader.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+document.getElementById("fileInput").addEventListener("change", function() {
+  previewImage(this.files[0]);
+});
+
+async function upload() {
+  const file = document.getElementById("fileInput").files[0];
+  if (!file) return alert("Upload an image first");
+
+  const formData = new FormData();
+  formData.append("file", file);
+
+  document.getElementById("loading").innerText = "Analyzing image...";
+
+  const res = await fetch("http://127.0.0.1:8000/process-image", {
+    method: "POST",
+    body: formData
+  });
+
+  const data = await res.json();
+
+  document.getElementById("loading").innerText = "";
+
+  document.getElementById("result").innerText = data.product_name;
+
+  document.getElementById("amazon").innerText = "Search on Amazon";
+  document.getElementById("amazon").href =
+    "https://www.amazon.in/s?k=" + encodeURIComponent(data.product_name);
+
+  document.getElementById("flipkart").innerText = "Search on Flipkart";
+  document.getElementById("flipkart").href =
+    "https://www.flipkart.com/search?q=" + encodeURIComponent(data.product_name);
+}
+</script>
+
+</body>
+</html>
